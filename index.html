@@ -7,15 +7,11 @@
 <title>MDR Workspace — Premium Custom Apparel Design Showcase</title>
 <meta name="description" content="MDR Workspace — Browse premium jersey, collar shirt, and Muslimah clothing designs. Place your interest directly via WhatsApp."/>
 
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- GSAP Suite -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
@@ -1030,7 +1026,6 @@ nav.scrolled {
   box-shadow:0 20px 40px rgba(37,211,102,0.35);
 }
 
-/* Contact cards - now 2 columns only */
 .contact-cards { 
   display:grid; 
   grid-template-columns:1fr; 
@@ -1169,6 +1164,53 @@ footer { padding:36px 0; border-top:1px solid rgba(240,236,228,0.07); background
 }
 @media(min-width:768px){
   .modal-body { padding: 40px 36px; }
+}
+
+/* ─── IMAGE PREVIEW IN MODAL ─────────────────────── */
+.modal-img-preview {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(201,149,108,0.05);
+  border: 1px solid rgba(201,149,108,0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-img-preview-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(201,149,108,0.15);
+  display: grid;
+  place-items: center;
+  color: #c9956c;
+}
+.modal-img-preview-text {
+  flex: 1;
+  min-width: 0;
+}
+.modal-img-preview-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #c9956c;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.modal-img-preview-url {
+  font-size: 11px;
+  color: rgba(240,236,228,0.6);
+  word-break: break-all;
+  line-height: 1.4;
+}
+.modal-img-preview-note {
+  margin-top: 8px;
+  font-size: 10px;
+  color: rgba(200,205,214,0.5);
+  font-style: italic;
+  line-height: 1.5;
 }
 
 .viewer-box {
@@ -1522,7 +1564,7 @@ footer { padding:36px 0; border-top:1px solid rgba(240,236,228,0.07); background
     <div class="process-grid">
       <div class="process-card"><div class="process-num">01</div><div class="process-title">Browse</div><div class="process-desc">Explore our design archive by category. Each piece is crafted with care.</div></div>
       <div class="process-card"><div class="process-num">02</div><div class="process-title">Select</div><div class="process-desc">Click any design to see full details, available sizes, and customization options.</div></div>
-      <div class="process-card"><div class="process-num">03</div><div class="process-title">Connect</div><div class="process-desc">One tap sends your interest directly to our WhatsApp with all product details pre-filled.</div></div>
+      <div class="process-card"><div class="process-num">03</div><div class="process-title">Connect</div><div class="process-desc">One tap sends your interest directly to our WhatsApp with design image link included.</div></div>
       <div class="process-card"><div class="process-num">04</div><div class="process-title">Receive</div><div class="process-desc">We confirm, customize, and deliver — on time, every time.</div></div>
     </div>
   </div>
@@ -1686,6 +1728,22 @@ mobileMenu.querySelectorAll('a').forEach(link => {
 
 const WA = "60194341514";
 const PER_PAGE = 12;
+
+// ─── AUTO-DETECT BASE URL (untuk GitHub Pages) ───
+// Ini akan detect URL penuh website supaya gambar boleh diakses
+const BASE_URL = new URL('.', window.location.href).href.replace(/\/$/, '');
+
+// ─── FUNCTION: Convert local image path ke full URL ───
+function getFullImageUrl(imgPath) {
+  // Kalau dah URL penuh (http/https), return macam tu
+  if (imgPath.startsWith('http://') || imgPath.startsWith('https://') || imgPath.startsWith('data:')) {
+    return imgPath;
+  }
+  // Kalau local path, combine dengan base URL
+  // Remove leading slash kalau ada untuk elak double slash
+  const cleanPath = imgPath.replace(/^\//, '');
+  return BASE_URL + '/' + cleanPath;
+}
 
 const products = {
   jersey: [
@@ -1852,11 +1910,33 @@ function renderSizeChart(cat) {
      <tbody>${d.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
 }
 
+// ─── MODAL DENGAN IMAGE URL & ATTACH INSTRUCTION ───
 function openModal(p) {
   const sd = sizeCharts[currentTab];
+  
+  // Get full image URL (auto-detect base URL untuk GitHub Pages)
+  const fullImageUrl = getFullImageUrl(p.img);
+  
+  // Build WhatsApp message dengan image URL
   const waMsg = encodeURIComponent(
-    `Hi MDR Workspace, I'm interested in:\n\n• Design ID: ${p.id}\n• Category: ${currentTab}\n• Design: ${p.name}\n\nPlease share more details. Thank you!`
+`Hi MDR Workspace, I'm interested in this design:
+
+━━━━━━━━━━━━━━━━━━
+📋 DESIGN DETAILS
+━━━━━━━━━━━━━━━━━━
+• Design ID: ${p.id}
+• Category: ${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}
+• Design Name: ${p.name}
+
+🖼️ DESIGN IMAGE:
+${fullImageUrl}
+━━━━━━━━━━━━━━━━━━
+
+📌 NOTE: I will also attach the image above in this chat for your reference.
+
+Please share more details (price, availability, customization options). Thank you!`
   );
+  
   document.getElementById('modal-content').innerHTML = `
     <button onclick="closeModal()" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(22,22,31,.9);border:1px solid rgba(240,236,228,0.1);color:#f0ece4;cursor:pointer;display:grid;place-items:center;transition:all .25s;z-index:10;"
       onmouseenter="this.style.background='#c9956c';this.style.color='#050507';"
@@ -1880,8 +1960,26 @@ function openModal(p) {
               </table>
             </div>
           </div>
+          
+          <!-- IMAGE PREVIEW BOX -->
+          <div class="modal-img-preview">
+            <div class="modal-img-preview-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
+            <div class="modal-img-preview-text">
+              <div class="modal-img-preview-label">Design Image Link</div>
+              <div class="modal-img-preview-url">${fullImageUrl}</div>
+              <div class="modal-img-preview-note">
+                ✨ Image link akan dihantar automatik dalam WhatsApp message. Seller boleh klik link untuk tengok gambar design.
+              </div>
+            </div>
+          </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
           <button onclick="openViewer('${p.id}')" class="modal-view-full">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             View Full Image
@@ -1891,7 +1989,7 @@ function openModal(p) {
             I'm Interested — WhatsApp Now
           </a>
         </div>
-        <p style="font-size:11px;color:rgba(200,205,214,.3);text-align:center;margin-top:12px;letter-spacing:.03em;">WhatsApp opens with details pre-filled.</p>
+        <p style="font-size:11px;color:rgba(200,205,214,.3);text-align:center;margin-top:12px;letter-spacing:.03em;">WhatsApp opens with design image link pre-filled.</p>
       </div>
     </div>
   `;
